@@ -183,7 +183,7 @@
 
   async function carregarLista() {
     try {
-      const res = await sbReq(encodeURIComponent(TABELA) + '?select=Nome%3A,Status%3A&order=created_at.asc');
+      const res = await sbReq(encodeURIComponent(TABELA) + '?select=nome,status&order=created_at.asc');
       const data = await res.json();
       document.getElementById('lista-loading').style.display = 'none';
       renderLista(Array.isArray(data) ? data : []);
@@ -200,12 +200,12 @@
     ul.innerHTML = '';
     if (!list.length) { vazio.style.display = 'block'; cw.innerHTML = ''; return; }
     vazio.style.display = 'none';
-    const sim = list.filter(i => i['Status:'] === 'sim').length;
+    const sim = list.filter(i => i.status === 'sim').length;
     cw.innerHTML = '<div class="count-badge"><strong>' + list.length + '</strong> confirmação(ões) &nbsp;·&nbsp; <strong>' + sim + '</strong> presente(s)</div>';
     const labels = { sim: 'Confirmado', nao: 'Não vai' };
     list.slice().reverse().forEach(item => {
       const li = document.createElement('li');
-      li.innerHTML = '<span class="name">' + item['Nome:'] + '</span><span class="pill ' + item['Status:'] + '">' + (labels[item['Status:']] || item['Status:']) + '</span>';
+      li.innerHTML = '<span class="name">' + item.nome + '</span><span class="pill ' + item.status + '">' + (labels[item.status] || item.status) + '</span>';
       ul.appendChild(li);
     });
   }
@@ -221,13 +221,13 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Enviando…';
     try {
-      const checkRes = await sbReq(encodeURIComponent(TABELA) + '?Nome%3A=eq.' + encodeURIComponent(nome) + '&select=id');
+      const checkRes = await sbReq(encodeURIComponent(TABELA) + '?nome=eq.' + encodeURIComponent(nome) + '&select=id');
       const existing = await checkRes.json();
       if (Array.isArray(existing) && existing.length > 0) {
         showToast('Você já confirmou! Obrigado. ❤️');
         btn.disabled = false; btn.innerHTML = 'Enviar Confirmação'; return;
       }
-      const res = await sbReq(encodeURIComponent(TABELA), { method: 'POST', body: JSON.stringify({ 'Nome:': nome, 'Status:': statusSelecionado }) });
+      const res = await sbReq(encodeURIComponent(TABELA), { method: 'POST', body: JSON.stringify({ nome: nome, status: statusSelecionado }) });
       if (res.ok || res.status === 201) {
         document.getElementById('inp-nome').value = '';
         statusSelecionado = '';
